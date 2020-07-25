@@ -9,9 +9,17 @@ metadata:
     # ADD THIS LINE ABOVE
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     # UPDATE THIS LINE ABOVE
+    certmanager.k8s.io/cluster-issuer: 'letsencrypt-prod' # use this certificate
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true' # to ensure anyone using nginx should use ssl certificate
 spec:
+  tls:
+    - hosts:
+        - <domain>
+        - <domain with www>
+      secretName: k8s-multi-com
   rules:
-    - http:
+    - host: k8s-multi.com
+      http:
         paths:
           - path: /?(.*)
           # UPDATE THIS LINE ABOVE
@@ -23,3 +31,17 @@ spec:
             backend:
               serviceName: server-cluster-ip-service
               servicePort: 5000
+    - host: www.k8s-multi.com
+      http:
+        paths:
+          - path: /?(.*)
+          # UPDATE THIS LINE ABOVE
+            backend:
+              serviceName: client-cluster-ip-service
+              servicePort: 3000
+          - path: /api/?(.*)
+          # UPDATE THIS LINE ABOVE
+            backend:
+              serviceName: server-cluster-ip-service
+              servicePort: 5000
+        
